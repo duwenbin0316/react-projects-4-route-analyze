@@ -6,6 +6,7 @@ This repository is a workspace for multiple React sample projects used to valida
 
 - Root files: repository docs such as [`README.md`](README.md) and `React路由跳转关系分析工具-技术设计文档.md`
 - Analyzer package: `route-analyzer/` contains the CLI and core scanning logic
+- Tool usage doc: `route-analyzer/docs/USAGE.md`
 - App source: `react-router5-demo/src`
 - Page modules: `react-router5-demo/src/pages/<route>/index.jsx`
 - Shared route config: `react-router5-demo/src/config/sections.js`
@@ -25,6 +26,7 @@ Run commands inside the target app directory.
 - `cd react-router5-demo && npm run preview`: preview the production build locally
 - `cd route-analyzer && npm install`: install analyzer dependencies
 - `cd route-analyzer && node ./bin/route-analyzer.js analyze ../react-router5-config-array`: run the scanner against a sample app
+- `cd route-analyzer && node ./bin/route-analyzer.js impact ../react-router3-legacy --target "/trade/detail/:id"`: generate an impact report
 - `cd react-router3-legacy && npm install`: install legacy webpack dependencies
 - `cd react-router3-legacy && npm run start`: run the webpack dev server
 - `cd react-router3-legacy && npm run build`: build the legacy webpack sample
@@ -38,6 +40,7 @@ Use ES modules, React function components, and 2-space indentation in JSX/JS fil
 - Route folders: match route intent, e.g. `pages/dashboard`, `pages/profile`
 - Legacy webpack/v3 samples may intentionally keep older patterns such as class components, `contextTypes`, and route config objects if they improve analysis coverage
 - Keep scanner logic under `route-analyzer/src/core` and keep CLI/file I/O glue under `route-analyzer/src/cli`
+- Keep user-facing command examples in `route-analyzer/docs/USAGE.md` updated when CLI behavior changes
 
 Linting is managed by ESLint via `eslint.config.js` in Vite samples. Some legacy samples may omit linting if the goal is to preserve authentic old-project structure.
 

@@ -134,6 +134,17 @@ export function detectProject(projectRoot, config = {}) {
 
   const apps = mergeConfigApps(projectRoot, detectedApps, config.apps)
   const sharedLibs = isMonorepo ? detectSharedLibs(projectRoot, workspaceDirs) : []
+  const packageIndex = workspaceDirs
+    .map((dir) => {
+      const packageJsonPath = path.join(dir, 'package.json')
+      if (!exists(packageJsonPath)) return null
+      const packageJson = readJson(packageJsonPath)
+      return {
+        name: packageJson.name || path.basename(dir),
+        root: toPosixPath(path.relative(projectRoot, dir)) || '.',
+      }
+    })
+    .filter(Boolean)
 
   return {
     workspace: projectRoot,
@@ -145,7 +156,9 @@ export function detectProject(projectRoot, config = {}) {
       role: app.role,
       mounts: app.mounts || {},
       customNavigators: app.customNavigators || [],
+      aliases: app.aliases || config.aliases || {},
     })),
     sharedLibs,
+    packageIndex,
   }
 }

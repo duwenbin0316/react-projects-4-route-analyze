@@ -3,21 +3,21 @@ import generate from '@babel/generator'
 import * as t from '@babel/types'
 import { parseFile, walk } from '../utils/ast.js'
 import { buildSourceLoc } from './types.js'
-import { exists, readText, toRelative } from '../utils/fs.js'
-import { joinRoutePath, normalizeRoutePath, resolveImportFile } from '../utils/path.js'
+import { readText } from '../utils/fs.js'
+import { joinRoutePath, normalizeRoutePath } from '../utils/path.js'
 
-function buildImportMap(ast, filePath, projectRoot) {
+function buildImportMap(ast, filePath, aliasResolver) {
   const importMap = new Map()
 
   walk(ast, {
     ImportDeclaration(importPath) {
       const source = importPath.node.source.value
-      const resolvedCandidates = resolveImportFile(filePath, source) || []
-      const resolved = resolvedCandidates.find((candidate) => exists(candidate)) || source
+      const resolved = aliasResolver.resolve(source, filePath)
       for (const specifier of importPath.node.specifiers) {
         importMap.set(specifier.local.name, {
           importedName: specifier.imported?.name || 'default',
-          source: resolved.startsWith(projectRoot) ? toRelative(projectRoot, resolved) : source,
+          rawSource: source,
+          source: resolved ? aliasResolver.toProjectRelative(resolved) : `unresolved:${source}`,
         })
       }
     },
@@ -45,25 +45,26 @@ function resolveLiteralPath(node) {
   return null
 }
 
-function resolveComponent(node, importMap, projectRoot) {
+function resolveComponent(node, importMap, aliasResolver, fromFile) {
   if (!node) return { componentFile: '', componentName: '' }
   const expression = t.isJSXExpressionContainer(node) ? node.expression : node
 
   if (t.isIdentifier(expression)) {
     const imported = importMap.get(expression.name)
     return {
-      componentFile: imported?.source || '',
-      componentName: expression.name,
-      lazy: false,
-    }
+        componentFile: imported?.source || '',
+        componentName: expression.name,
+        lazy: false,
+      }
   }
 
   if (t.isCallExpression(expression)) {
     const code = generate.default(expression).code
     const lazyImport = /import\((['"`])(.+?)\1\)/.exec(code)
     if (lazyImport) {
+      const resolved = aliasResolver.resolve(lazyImport[2], fromFile)
       return {
-        componentFile: lazyImport[2],
+        componentFile: resolved ? aliasResolver.toProjectRelative(resolved) : `unresolved:${lazyImport[2]}`,
         componentName: 'default',
         lazy: true,
       }
@@ -77,13 +78,14 @@ function resolveComponent(node, importMap, projectRoot) {
   }
 }
 
-function extractRequireEnsureComponent(objectNode) {
+function extractRequireEnsureComponent(objectNode, aliasResolver, fromFile) {
   for (const property of objectNode.properties) {
     if (!t.isObjectMethod(property) || !t.isIdentifier(property.key, { name: 'getComponent' })) continue
     const methodCode = generate.default(property.body).code
     const requireMatch = /requireRef\((['"`])(.+?)\1\)/.exec(methodCode)
+    const resolved = requireMatch?.[2] ? aliasResolver.resolve(requireMatch[2], fromFile) : null
     return {
-      componentFile: requireMatch?.[2] || '',
+      componentFile: resolved ? aliasResolver.toProjectRelative(resolved) : requireMatch?.[2] ? `unresolved:${requireMatch[2]}` : '',
       componentName: 'default',
       lazy: true,
     }
@@ -96,7 +98,7 @@ function extractRequireEnsureComponent(objectNode) {
   }
 }
 
-function extractRoutesFromConfigArray(arrayNode, parentPath, importMap) {
+function extractRoutesFromConfigArray(arrayNode, parentPath, importMap, aliasResolver, fromFile) {
   return arrayNode.elements
     .filter((element) => t.isObjectExpression(element))
     .flatMap((element) => {
@@ -115,8 +117,8 @@ function extractRoutesFromConfigArray(arrayNode, parentPath, importMap) {
       )
 
       const component = componentProp && t.isObjectProperty(componentProp)
-        ? resolveComponent(componentProp.value, importMap)
-        : extractRequireEnsureComponent(element)
+        ? resolveComponent(componentProp.value, importMap, aliasResolver, fromFile)
+        : extractRequireEnsureComponent(element, aliasResolver, fromFile)
 
       return [
         {
@@ -160,7 +162,7 @@ function isNestedUnderRoute(pathRef) {
   )
 }
 
-function extractChildRoutesFromAttribute(attribute, parentPath, importMap) {
+function extractChildRoutesFromAttribute(attribute, parentPath, importMap, aliasResolver, fromFile) {
   if (!attribute || !t.isJSXExpressionContainer(attribute.value)) return []
   const code = generate.default(attribute.value.expression).code
   const match = code.match(/cb\(null,\s*(\[[\s\S]*\])\s*\)/)
@@ -171,13 +173,13 @@ function extractChildRoutesFromAttribute(attribute, parentPath, importMap) {
     const ast = parseFile(wrapped, 'inline-routes.js')
     const expression = ast.program.body[0].expression
     if (!t.isArrayExpression(expression)) return []
-    return extractRoutesFromConfigArray(expression, parentPath, importMap)
+    return extractRoutesFromConfigArray(expression, parentPath, importMap, aliasResolver, fromFile)
   } catch {
     return []
   }
 }
 
-function extractJsxRoute(node, parentPath, importMap) {
+function extractJsxRoute(node, parentPath, importMap, aliasResolver, fromFile) {
   const routeName = getJsxName(node.openingElement.name)
   if (!routeName || !['Route', 'IndexRoute'].includes(routeName)) return null
 
@@ -186,14 +188,20 @@ function extractJsxRoute(node, parentPath, importMap) {
   const getChildRoutesAttribute = getJsxAttribute(node, 'getChildRoutes')
   const isIndex = routeName === 'IndexRoute'
   const currentPath = joinRoutePath(parentPath, resolveLiteralPath(pathAttribute?.value), isIndex)
-  const component = resolveComponent(componentAttribute?.value, importMap)
+  const component = resolveComponent(componentAttribute?.value, importMap, aliasResolver, fromFile)
 
   const children = node.children
     .filter((child) => t.isJSXElement(child))
-    .map((child) => extractJsxRoute(child, currentPath, importMap))
+    .map((child) => extractJsxRoute(child, currentPath, importMap, aliasResolver, fromFile))
     .filter(Boolean)
 
-  const callbackChildren = extractChildRoutesFromAttribute(getChildRoutesAttribute, currentPath, importMap)
+  const callbackChildren = extractChildRoutesFromAttribute(
+    getChildRoutesAttribute,
+    currentPath,
+    importMap,
+    aliasResolver,
+    fromFile,
+  )
 
   return {
     path: normalizeRoutePath(currentPath),
@@ -210,22 +218,22 @@ function flattenRoutes(routes) {
   return routes.flatMap((route) => [route, ...(route.children ? flattenRoutes(route.children) : [])])
 }
 
-export function extractRoutesFromFile(projectRoot, absoluteFilePath, appName) {
+export function extractRoutesFromFile(projectRoot, absoluteFilePath, appName, aliasResolver) {
   const code = readText(absoluteFilePath)
   const ast = parseFile(code, absoluteFilePath)
-  const importMap = buildImportMap(ast, absoluteFilePath, projectRoot)
+  const importMap = buildImportMap(ast, absoluteFilePath, aliasResolver)
   const routes = []
 
   walk(ast, {
     JSXElement(pathRef) {
-      const route = extractJsxRoute(pathRef.node, '', importMap)
+      const route = extractJsxRoute(pathRef.node, '', importMap, aliasResolver, absoluteFilePath)
       if (!route) return
       if (isNestedUnderRoute(pathRef.parentPath)) return
       routes.push(route)
     },
     ArrayExpression(pathRef) {
       if (!isRouteLikeArray(pathRef)) return
-      const extracted = extractRoutesFromConfigArray(pathRef.node, '', importMap)
+      const extracted = extractRoutesFromConfigArray(pathRef.node, '', importMap, aliasResolver, absoluteFilePath)
       for (const route of extracted) routes.push(route)
     },
   })

@@ -29,7 +29,7 @@
 
 ### `route-analyzer`
 
-扫描工具本体，提供 `analyze`、`routes`、`unresolved`、`impact` 四个 CLI 子命令。当前已覆盖单应用、基础 monorepo、React Router v3/v5 的静态提取，以及 `route-analyzer.json` 中的自定义跳转配置。
+扫描工具本体，提供 `analyze`、`routes`、`unresolved`、`impact` 四个 CLI 子命令。当前已覆盖单应用、基础 monorepo、React Router v3/v5 的静态提取、alias 解析、shared lib 简单导航封装预分析，以及 `route-analyzer.json` 中的自定义跳转配置。
 
 ### `react-router5-demo`
 
@@ -101,3 +101,7 @@ cd react-router3-legacy
 npm install
 npm run start
 ```
+
+工具使用文档：
+
+- [route-analyzer/docs/USAGE.md](/Users/duwenbin/Code/react-project-demo/route-analyzer/docs/USAGE.md)

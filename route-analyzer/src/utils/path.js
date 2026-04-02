@@ -1,4 +1,5 @@
 import path from 'path'
+import fs from 'fs'
 
 export function normalizeRoutePath(routePath) {
   if (!routePath) return '/'
@@ -20,7 +21,11 @@ export function joinRoutePath(parentPath, childPath, isIndex = false) {
 export function resolveImportFile(fromFile, importSource) {
   if (!importSource || !importSource.startsWith('.')) return null
   const basePath = path.resolve(path.dirname(fromFile), importSource)
-  const candidates = [
+  return buildFileCandidates(basePath)
+}
+
+export function buildFileCandidates(basePath) {
+  return [
     basePath,
     `${basePath}.js`,
     `${basePath}.jsx`,
@@ -31,7 +36,11 @@ export function resolveImportFile(fromFile, importSource) {
     path.join(basePath, 'index.ts'),
     path.join(basePath, 'index.tsx'),
   ]
-  return candidates
+}
+
+export function resolveFirstExistingFile(basePath) {
+  const candidates = buildFileCandidates(basePath)
+  return candidates.find((candidate) => fs.existsSync(candidate)) || null
 }
 
 export function stripQueryAndHash(input) {

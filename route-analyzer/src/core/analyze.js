@@ -3,11 +3,27 @@ import { detectProject } from './detect.js'
 import { loadAnalyzerConfig } from './config.js'
 import { extractRoutesFromFile } from './routeExtractor.js'
 import { extractNavigationEdges } from './navigationExtractor.js'
+import { AliasResolver } from './aliasResolver.js'
+import { analyzeSharedLibs, mergeCustomNavigators } from './sharedLibAnalyzer.js'
 
-function collectRoutes(projectRoot, manifest) {
+function buildAliasResolvers(projectRoot, manifest, config) {
+  return new Map(
+    manifest.apps.map((app) => [
+      app.name,
+      new AliasResolver({ projectRoot, app, manifest, config }),
+    ]),
+  )
+}
+
+function collectRoutes(projectRoot, manifest, aliasResolvers) {
   return manifest.apps.flatMap((app) =>
     app.routeEntries.flatMap((routeEntry) =>
-      extractRoutesFromFile(projectRoot, path.resolve(projectRoot, app.root, routeEntry), app.name),
+      extractRoutesFromFile(
+        projectRoot,
+        path.resolve(projectRoot, app.root, routeEntry),
+        app.name,
+        aliasResolvers.get(app.name),
+      ),
     ),
   )
 }
@@ -29,7 +45,7 @@ function applyMounts(routes, manifest) {
   })
 }
 
-function buildStats(routes, edges) {
+function buildStats(routes, edges, unresolvedImports) {
   const unresolvedEdges = edges.filter(
     (edge) =>
       edge.confidence === 'low' ||
@@ -44,14 +60,23 @@ function buildStats(routes, edges) {
     resolvedEdges: edges.length - unresolvedEdges.length,
     unresolvedEdges: unresolvedEdges.length,
     llmResolvedEdges: 0,
+    unresolvedImports: unresolvedImports.length,
   }
 }
 
 export function analyzeProject(projectRoot, options = {}) {
   const { config } = loadAnalyzerConfig(projectRoot, options.config)
-  const manifest = detectProject(projectRoot, config)
-  const routes = applyMounts(collectRoutes(projectRoot, manifest), manifest)
-  const edges = manifest.apps.flatMap((app) => extractNavigationEdges(projectRoot, app))
+  const detectedManifest = detectProject(projectRoot, config)
+  const discoveredNavigators = analyzeSharedLibs(projectRoot, detectedManifest)
+  const manifest = mergeCustomNavigators(detectedManifest, discoveredNavigators)
+  const aliasResolvers = buildAliasResolvers(projectRoot, manifest, config)
+  const routes = applyMounts(collectRoutes(projectRoot, manifest, aliasResolvers), manifest)
+  const edges = manifest.apps.flatMap((app) =>
+    extractNavigationEdges(projectRoot, app, aliasResolvers.get(app.name)),
+  )
+  const unresolvedImports = [...new Set(
+    [...aliasResolvers.values()].flatMap((resolver) => resolver.getUnresolvedImports()),
+  )]
 
   return {
     analyzedAt: new Date().toISOString(),
@@ -62,6 +87,7 @@ export function analyzeProject(projectRoot, options = {}) {
     },
     routes,
     edges,
-    stats: buildStats(routes, edges),
+    stats: buildStats(routes, edges, unresolvedImports),
+    unresolvedImports,
   }
 }
