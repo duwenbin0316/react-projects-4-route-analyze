@@ -1,0 +1,7 @@
+{
+  "name": "react-monorepo-host-subapps",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ]
+}

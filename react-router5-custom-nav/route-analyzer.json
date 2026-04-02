@@ -1,0 +1,30 @@
+{
+  "apps": [
+    {
+      "name": "react-router5-custom-nav",
+      "root": ".",
+      "routeEntries": ["src/App.jsx"],
+      "routerVersion": "v5",
+      "customNavigators": [
+        {
+          "name": "jumpTo",
+          "module": "./src/navigation/customNavigator.jsx",
+          "pathArgIndex": 1,
+          "queryArgIndex": 2,
+          "stateArgIndex": 3
+        },
+        {
+          "name": "replaceWith",
+          "module": "./src/navigation/customNavigator.jsx",
+          "pathArgIndex": 1
+        },
+        {
+          "name": "CorpLink",
+          "module": "./src/navigation/customNavigator.jsx",
+          "pathArgIndex": 0,
+          "queryArgIndex": 1
+        }
+      ]
+    }
+  ]
+}

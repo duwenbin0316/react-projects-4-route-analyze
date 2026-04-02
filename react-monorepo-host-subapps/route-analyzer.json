@@ -1,0 +1,28 @@
+{
+  "apps": [
+    {
+      "name": "host-app",
+      "root": "packages/host-app",
+      "routeEntries": ["src/router/AppRouter.jsx"],
+      "routerVersion": "v5",
+      "mounts": {
+        "/trade": "trade-app",
+        "/risk": "risk-app"
+      }
+    },
+    {
+      "name": "trade-app",
+      "root": "packages/trade-app",
+      "routeEntries": ["src/router/routes.js"],
+      "routerVersion": "v5",
+      "role": "sub-app"
+    },
+    {
+      "name": "risk-app",
+      "root": "packages/risk-app",
+      "routeEntries": ["src/router/routes.js"],
+      "routerVersion": "v5",
+      "role": "sub-app"
+    }
+  ]
+}

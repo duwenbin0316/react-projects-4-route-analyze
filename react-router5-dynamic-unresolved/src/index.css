@@ -1,0 +1,10 @@
+body {
+  margin: 0;
+  font-family: "IBM Plex Sans", sans-serif;
+  background: #f4f7fb;
+  color: #111827;
+}
+
+* {
+  box-sizing: border-box;
+}
