@@ -15,6 +15,7 @@
 ├── AGENTS.md
 ├── React路由跳转关系分析工具-技术设计文档.md
 ├── react-monorepo-host-subapps/
+├── react-router3-legacy/
 ├── react-router5-config-array/
 ├── react-router5-custom-nav/
 ├── react-router5-demo/
@@ -63,10 +64,14 @@
 
 用于验证 monorepo 应用发现、host/sub-app 挂载、共享导航工具，以及跨应用跳转识别。
 
+### `react-router3-legacy`
+
+用于验证 React Router v3 的配置对象、`IndexRoute`、`getChildRoutes`、`getComponent` 和 `onEnter replace` 等老项目模式。
+
 ## 后续建议补充的样本项目
 
 - `react-router3-legacy`
-  覆盖 React Router v3 与 `getChildRoutes`
+  已补充，覆盖 React Router v3 与 `getChildRoutes`
 - `react-router5-loadable`
   覆盖 `loadable()` 形式的懒加载
 - `react-router5-guard-redirect`

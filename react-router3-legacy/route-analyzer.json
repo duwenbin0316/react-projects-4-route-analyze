@@ -1,0 +1,10 @@
+{
+  "apps": [
+    {
+      "name": "react-router3-legacy",
+      "root": ".",
+      "routeEntries": ["src/routes/index.js"],
+      "routerVersion": "v3"
+    }
+  ]
+}
