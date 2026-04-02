@@ -1,0 +1,23 @@
+{
+  "name": "@local/route-analyzer",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "route-analyzer": "./bin/route-analyzer.js"
+  },
+  "scripts": {
+    "build": "node ./bin/route-analyzer.js --help",
+    "analyze:demo": "node ./bin/route-analyzer.js analyze ../react-router5-demo",
+    "analyze:legacy": "node ./bin/route-analyzer.js analyze ../react-router3-legacy"
+  },
+  "dependencies": {
+    "@babel/generator": "^7.28.3",
+    "@babel/parser": "^7.28.4",
+    "@babel/traverse": "^7.28.4",
+    "@babel/types": "^7.28.4",
+    "commander": "^14.0.1",
+    "glob": "^11.0.3",
+    "yaml": "^2.8.1"
+  }
+}

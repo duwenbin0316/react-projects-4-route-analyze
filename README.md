@@ -14,6 +14,7 @@
 .
 ├── AGENTS.md
 ├── React路由跳转关系分析工具-技术设计文档.md
+├── route-analyzer/
 ├── react-monorepo-host-subapps/
 ├── react-router3-legacy/
 ├── react-router5-config-array/
@@ -25,6 +26,10 @@
 ```
 
 ## 当前项目
+
+### `route-analyzer`
+
+扫描工具本体，提供 `analyze`、`routes`、`unresolved`、`impact` 四个 CLI 子命令。当前已覆盖单应用、基础 monorepo、React Router v3/v5 的静态提取，以及 `route-analyzer.json` 中的自定义跳转配置。
 
 ### `react-router5-demo`
 
