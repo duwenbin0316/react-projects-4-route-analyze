@@ -1,4 +1,5 @@
 import React from 'react'
+import PropTypes from 'prop-types'
 
 function TradeListPage(props, context) {
   const jumpWithTemplate = () => {
@@ -15,7 +16,7 @@ function TradeListPage(props, context) {
 }
 
 TradeListPage.contextTypes = {
-  router: React.PropTypes.object,
+  router: PropTypes.object,
 }
 
 export default TradeListPage

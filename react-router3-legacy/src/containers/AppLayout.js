@@ -1,5 +1,6 @@
 import React from 'react'
 import { Link } from 'react-router'
+import PropTypes from 'prop-types'
 
 function AppLayout(props) {
   return (
@@ -17,6 +18,10 @@ function AppLayout(props) {
       <main>{props.children}</main>
     </div>
   )
+}
+
+AppLayout.propTypes = {
+  children: PropTypes.node,
 }
 
 export default AppLayout

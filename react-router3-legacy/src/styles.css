@@ -1,0 +1,16 @@
+body {
+  margin: 0;
+  padding: 24px;
+  font-family: Arial, sans-serif;
+  background: #f7f4ef;
+  color: #1f2937;
+}
+
+button,
+a {
+  margin-right: 12px;
+}
+
+section {
+  margin-top: 20px;
+}
