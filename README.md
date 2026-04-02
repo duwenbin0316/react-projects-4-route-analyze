@@ -66,12 +66,10 @@
 
 ### `react-router3-legacy`
 
-用于验证 React Router v3 的配置对象、`IndexRoute`、`getChildRoutes`、`getComponent` 和 `onEnter replace` 等老项目模式。
+基于 webpack 的 React Router v3 老项目样本，用于验证配置对象、`IndexRoute`、`getChildRoutes`、`getComponent`、`onEnter replace`、`browserHistory` 和 `context.router.push` 等老项目模式。
 
 ## 后续建议补充的样本项目
 
-- `react-router3-legacy`
-  已补充，覆盖 React Router v3 与 `getChildRoutes`
 - `react-router5-loadable`
   覆盖 `loadable()` 形式的懒加载
 - `react-router5-guard-redirect`
@@ -81,10 +79,20 @@
 
 ## 使用方式
 
-进入具体样本项目目录后再执行安装、启动和构建命令，例如：
+进入具体样本项目目录后再执行安装、启动和构建命令。
+
+Vite 类样本：
 
 ```bash
 cd react-router5-demo
 npm install
 npm run dev
+```
+
+webpack 老项目样本：
+
+```bash
+cd react-router3-legacy
+npm install
+npm run start
 ```
