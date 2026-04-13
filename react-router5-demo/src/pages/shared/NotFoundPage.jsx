@@ -7,8 +7,8 @@ function NotFoundPage() {
       <div className="hero-card">
         <div>
           <p className="eyebrow">404</p>
-          <h2>页面不存在</h2>
-          <p className="section-description">该地址没有匹配的路由，返回首页继续浏览。</p>
+          <h2>页面走丢了</h2>
+          <p className="section-description">该地址没有匹配的路由，请检查 URL 是否正确，或返回首页继续浏览。</p>
         </div>
         <NavLink className="solid-button" to={buildPath('home', 'overview')}>
           返回首页

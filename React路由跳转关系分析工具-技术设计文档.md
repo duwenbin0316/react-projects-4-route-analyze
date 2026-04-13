@@ -147,6 +147,7 @@ interface AnalysisResult {
     resolvedEdges: number;
     unresolvedEdges: number;
     llmResolvedEdges: number;
+    unresolvedImports: number;
   };
 }
 ```
@@ -289,6 +290,13 @@ interface AnalysisResult {
       ]
     }
   ],
+  "aliases": {
+    "@": "./src",
+    "@pages": "./src/pages",
+    "@utils": "./src/utils",
+    "~": "./src",
+    "@corp/common-utils": "../common-utils/src"
+  },
   "dynamicRoutes": "supplements/dynamic-routes.json",
   "llm": {
     "provider": "minimax",
@@ -343,9 +351,147 @@ export function jumpTo(path: string, query?: object) {
 - Traverser：`@babel/traverse`
 - 辅助：`@babel/types` 用于节点类型判断
 
-### 7.2 Extractor 拆分
+### 7.2 模块路径解析（Alias Resolver）
 
-#### 7.2.1 RouteConfigExtractor — 路由注册提取
+AST 提取路由和跳转时，核心操作是追溯 `import` 来源——`<Route component={List} />` 中 `List` 到底对应哪个文件。项目里的 import 路径几乎不会是真实相对路径，而是各种 alias：
+
+```typescript
+// 实际代码中你会遇到的路径形式
+import List from '@/pages/trade/List';           // tsconfig paths alias
+import List from '@pages/trade/List';            // webpack resolve.alias
+import List from 'pages/trade/List';             // webpack modules 配置
+import { jumpTo } from '@corp/common-utils';     // monorepo workspace 包
+import Detail from '~/pages/trade/Detail';       // 自定义前缀
+```
+
+如果不解析这些 alias，`resolveComponentRef` 拿到的 import source 是 `@/pages/trade/List` 这种字符串，无法定位到真实文件，路由注册表里的 `componentFile` 字段就是空的，跳转关系也没法建立。
+
+#### 7.2.1 解析策略
+
+按优先级依次尝试以下配置源：
+
+**1. tsconfig.json / jsconfig.json 的 paths 字段**
+
+这是最常见的 alias 来源。大部分项目配了 `"@/*": ["src/*"]` 这种映射。
+
+```json
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"],
+      "@pages/*": ["src/pages/*"],
+      "@utils/*": ["src/utils/*"]
+    }
+  }
+}
+```
+
+解析逻辑：读 tsconfig.json → 提取 `baseUrl` + `paths` → 构建映射表。注意 monorepo 下子应用可能有自己的 tsconfig 继承根配置（`extends`），需要递归解析。
+
+推荐使用 `tsconfig-paths` 这个库，它能处理 extends 继承和 paths 通配符匹配。
+
+**2. webpack 的 resolve.alias 和 resolve.modules**
+
+部分老项目不用 tsconfig paths，而是靠 webpack 配置：
+
+```javascript
+// webpack.config.js
+resolve: {
+  alias: {
+    '@': path.resolve(__dirname, 'src'),
+    '@corp/common-utils': path.resolve(__dirname, '../common-utils/src'),
+  },
+  modules: ['node_modules', 'src']  // 允许直接 import 'pages/xxx'
+}
+```
+
+解析逻辑：找到 webpack 配置文件 → 提取 `resolve.alias` 和 `resolve.modules`。这步有点棘手，因为 webpack 配置本身是 JS，可能有动态逻辑。务实的做法是用正则 + 简单 AST 提取字面量配置，复杂的动态配置走手动声明。
+
+**3. package.json 的 workspace 包名映射**
+
+monorepo 下 `import { jumpTo } from '@corp/common-utils'` 实际指向 `packages/common-utils/src/index.ts`。这个通过读 package.json 的 `name` 字段和 `main` / `module` 入口字段来定位。
+
+**4. 手动配置兜底**
+
+`route-analyzer.json` 中增加 `aliases` 字段，处理以上自动探测覆盖不了的情况：
+
+```json
+{
+  "aliases": {
+    "~": "./src",
+    "@legacy": "./src/legacy-modules",
+    "@corp/common-utils": "../common-utils/src"
+  }
+}
+```
+
+#### 7.2.2 AliasResolver 实现
+
+```typescript
+interface AliasResolver {
+  /**
+   * 将 import 路径解析为真实的文件系统绝对路径
+   * @param importPath  - 代码中的 import 路径，如 '@/pages/trade/List'
+   * @param fromFile    - 当前文件路径（用于解析相对路径）
+   * @returns 绝对文件路径，或 null（无法解析）
+   */
+  resolve(importPath: string, fromFile: string): string | null;
+}
+
+// 解析优先级
+class ChainedAliasResolver implements AliasResolver {
+  private resolvers: AliasResolver[];
+
+  constructor(projectRoot: string, appEntry: AppEntry) {
+    this.resolvers = [
+      new RelativePathResolver(),                    // ./xxx, ../xxx 直接解析
+      new TsconfigPathsResolver(projectRoot),        // tsconfig paths
+      new WebpackAliasResolver(projectRoot),          // webpack resolve.alias
+      new WorkspacePackageResolver(projectRoot),      // monorepo 包名
+      new ManualAliasResolver(appEntry.aliases),      // 手动配置
+    ];
+  }
+
+  resolve(importPath: string, fromFile: string): string | null {
+    for (const resolver of this.resolvers) {
+      const result = resolver.resolve(importPath, fromFile);
+      if (result) return result;
+    }
+    return null; // 所有 resolver 都失败，标记为 unresolved
+  }
+}
+```
+
+#### 7.2.3 文件扩展名探测
+
+import 路径通常不写扩展名（`import List from '@/pages/List'`），需要依次尝试：
+
+```
+@/pages/List
+  → src/pages/List.tsx
+  → src/pages/List.ts
+  → src/pages/List.jsx
+  → src/pages/List.js
+  → src/pages/List/index.tsx
+  → src/pages/List/index.ts
+  → src/pages/List/index.jsx
+  → src/pages/List/index.js
+```
+
+探测顺序按项目的主要技术栈调整（TypeScript 项目优先 .tsx/.ts）。
+
+#### 7.2.4 解析失败的处理
+
+如果 AliasResolver 无法解析某个 import 路径：
+- 不中断分析流程
+- 对应的 RouteEntry.componentFile 标记为 `"unresolved:@/pages/trade/List"`
+- 汇总输出所有未解析的 import 路径，方便用户补充 aliases 配置
+- 在 stats 中增加 `unresolvedImports` 计数
+
+### 7.3 Extractor 拆分
+
+#### 7.3.1 RouteConfigExtractor — 路由注册提取
 
 负责从路由配置文件中提取所有 `RouteEntry`。
 
@@ -435,7 +581,7 @@ function resolveComponentRef(attrValue) {
 }
 ```
 
-#### 7.2.2 NavigationCallExtractor — 跳转调用提取
+#### 7.3.2 NavigationCallExtractor — 跳转调用提取
 
 负责从所有组件文件中提取跳转行为，产出 `NavigationEdge`。
 
@@ -597,7 +743,7 @@ function buildCustomNavigatorVisitor(navigators) {
 }
 ```
 
-#### 7.2.3 ParamExtractor — 参数深度提取
+#### 7.3.3 ParamExtractor — 参数深度提取
 
 内嵌在上面两个 extractor 中调用，核心是 `resolveValue` 函数：
 
@@ -633,7 +779,7 @@ function resolveValue(node): ParamValue {
 }
 ```
 
-### 7.3 文件扫描策略
+### 7.4 文件扫描策略
 
 ```
 1. 从 routeEntries 开始，提取路由注册表
@@ -648,7 +794,7 @@ function resolveValue(node): ParamValue {
 
 这个预扫描步骤在大型项目中可以过滤掉 80%+ 的文件，显著提升速度。
 
-### 7.4 各 Extractor 输出汇总
+### 7.5 各 Extractor 输出汇总
 
 ```
 RouteConfigExtractor → RouteEntry[]
@@ -967,7 +1113,8 @@ route-analyzer unresolved <project-dir>
     "@babel/traverse": "^7.24.0",
     "@babel/types": "^7.24.0",
     "@babel/generator": "^7.24.0",
-    "glob": "^10.0.0",
+    "tsconfig-paths": "^4.2.0",
+    "fast-glob": "^3.3.0",
     "commander": "^12.0.0"
   },
   "optionalDependencies": {
@@ -976,4 +1123,7 @@ route-analyzer unresolved <project-dir>
 }
 ```
 
-说明：LLM 调用使用 OpenAI SDK 的兼容接口（`baseURL` 指向 MiniMax 或其他兼容 API），不额外引入 SDK。
+说明：
+- `tsconfig-paths`：解析 tsconfig.json 的 paths alias，支持 extends 继承链
+- `fast-glob`：替代 glob，扫描性能更好
+- `openai`：LLM 调用使用 OpenAI SDK 的兼容接口（`baseURL` 指向 MiniMax 或其他兼容 API），不额外引入 SDK
