@@ -105,6 +105,11 @@ function CounterCard({ title = '计数器示例', initial = 0 }) {
           </div>
         ))}
       </div>
+      <div>
+        i am human，hahaha
+
+        hello world
+      </div>
     </article>
   )
 }
