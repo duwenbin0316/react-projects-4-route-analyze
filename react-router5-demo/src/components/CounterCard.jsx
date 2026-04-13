@@ -15,6 +15,21 @@ function CounterCard({ title = '计数器示例', initial = 0 }) {
   const recentAction = history[0]?.label ?? '初始化'
   const lastSnapshot = history[1]
   const averageValue = Math.round(history.reduce((sum, item) => sum + item.value, 0) / history.length)
+  const reachedMilestone = delta !== 0 && Math.abs(delta) % 10 === 0
+  const highlightMessage = count === bounds.max && count !== initial
+    ? `已刷新最高值 ${bounds.max}`
+    : count === bounds.min && count !== initial
+      ? `已刷新最低值 ${bounds.min}`
+      : reachedMilestone
+        ? `达成 ${formattedDelta} 里程碑`
+        : `当前步进 ${step}，继续操作看看统计变化`
+  const highlightTone = count === bounds.max && count !== initial
+    ? 'rgba(29, 155, 95, 0.16)'
+    : count === bounds.min && count !== initial
+      ? 'rgba(217, 72, 95, 0.16)'
+      : reachedMilestone
+        ? 'rgba(99, 102, 241, 0.18)'
+        : 'rgba(255, 255, 255, 0.05)'
 
   const applyCount = (nextCount, label) => {
     setCount(nextCount)
@@ -135,10 +150,15 @@ function CounterCard({ title = '计数器示例', initial = 0 }) {
           <button className="ghost-button" onClick={revertLastChange} disabled={!lastSnapshot} type="button">撤销一步</button>
         </div>
       </div>
-      <div>
-        modified by human，hahaha
-
-        hello world
+      <div
+        style={{
+          padding: '10px 12px',
+          borderRadius: '12px',
+          background: highlightTone,
+          fontSize: '0.875rem',
+        }}
+      >
+        {highlightMessage}
       </div>
       <div style={{ display: 'grid', gap: '6px', fontSize: '0.875rem', opacity: 0.8 }}>
         <div>变化量：{formattedDelta}</div>
@@ -153,10 +173,8 @@ function CounterCard({ title = '计数器示例', initial = 0 }) {
           </div>
         ))}
       </div>
-      <div>
-        i am human，hahaha
-
-        hello world
+      <div style={{ fontSize: '0.8rem', opacity: 0.68 }}>
+        连续尝试增加、回撤和撤销，可以更明显看到里程碑提示怎么变化。
       </div>
     </article>
   )
