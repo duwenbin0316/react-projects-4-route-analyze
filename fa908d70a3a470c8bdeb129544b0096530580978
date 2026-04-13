@@ -1,0 +1,27 @@
+react-router5-demo/src/components/CounterCard.jsx
+  f55a909c08aea0a6 1-19
+react-router5-demo/src/pages/shared/NotFoundPage.jsx
+  f55a909c08aea0a6 10-11
+react-router5-demo/src/pages/dashboard/index.jsx
+  f55a909c08aea0a6 2,6-14
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.2.8",
+  "base_commit_sha": "fa908d70a3a470c8bdeb129544b0096530580978",
+  "prompts": {
+    "f55a909c08aea0a6": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "b71f892a-a63e-4429-8aaa-52b42a7367e7",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "duwenbin0316",
+      "messages": [],
+      "total_additions": 31,
+      "total_deletions": 3,
+      "accepted_lines": 31,
+      "overriden_lines": 0
+    }
+  }
+}
