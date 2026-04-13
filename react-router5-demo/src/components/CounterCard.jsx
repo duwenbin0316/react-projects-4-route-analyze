@@ -1,5 +1,6 @@
 import { useState } from 'react'
 
+// CounterCard 用来演示计数、步进、历史和里程碑提示
 const cardStyle = { display: 'flex', flexDirection: 'column', gap: '12px' }
 const rowStyle = { display: 'flex', gap: '8px' }
 const wrapRowStyle = { ...rowStyle, flexWrap: 'wrap' }
