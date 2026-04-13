@@ -33,6 +33,8 @@ function CounterCard({ title = '计数器示例', initial = 0 }) {
         ? 'rgba(99, 102, 241, 0.18)'
         : 'rgba(255, 255, 255, 0.05)'
 
+  console.log(count, initial, delta, bounds, history, draftValue, step, stepOptions, reachedMilestone, highlightMessage, highlightTone)
+
   const applyCount = (nextCount, label) => {
     setCount(nextCount)
     setDraftValue(`${nextCount}`)
