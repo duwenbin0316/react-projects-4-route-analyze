@@ -5,6 +5,7 @@ function CounterCard({ title = '计数器示例', initial = 0 }) {
   const [step, setStep] = useState(1)
   const [bounds, setBounds] = useState({ min: initial, max: initial })
   const [history, setHistory] = useState([{ label: '初始化', value: initial }])
+  const [draftValue, setDraftValue] = useState(`${initial}`)
   const delta = count - initial
   const statusText = delta === 0 ? '当前与初始值一致' : delta > 0 ? `当前比初始值高 ${delta}` : `当前比初始值低 ${Math.abs(delta)}`
   const trendText = delta === 0 ? '持平' : delta > 0 ? '上升中' : '下降中'
@@ -12,9 +13,12 @@ function CounterCard({ title = '计数器示例', initial = 0 }) {
   const formattedDelta = delta > 0 ? `+${delta}` : `${delta}`
   const stepOptions = [1, 5, 10]
   const recentAction = history[0]?.label ?? '初始化'
+  const lastSnapshot = history[1]
+  const averageValue = Math.round(history.reduce((sum, item) => sum + item.value, 0) / history.length)
 
   const applyCount = (nextCount, label) => {
     setCount(nextCount)
+    setDraftValue(`${nextCount}`)
     setBounds((current) => ({
       min: Math.min(current.min, nextCount),
       max: Math.max(current.max, nextCount),
@@ -26,6 +30,25 @@ function CounterCard({ title = '计数器示例', initial = 0 }) {
     const offset = nextCount - initial
     const label = offset === 0 ? '回到初始值' : offset > 0 ? `跳到 +${offset}` : `跳到 ${offset}`
     applyCount(nextCount, label)
+  }
+
+  const commitDraftValue = () => {
+    const parsed = Number(draftValue)
+
+    if (Number.isNaN(parsed)) {
+      setDraftValue(`${count}`)
+      return
+    }
+
+    applyCount(parsed, `手动设置为 ${parsed}`)
+  }
+
+  const revertLastChange = () => {
+    if (!lastSnapshot) {
+      return
+    }
+
+    applyCount(lastSnapshot.value, `撤销到 ${lastSnapshot.value}`)
   }
 
   return (
@@ -93,9 +116,34 @@ function CounterCard({ title = '计数器示例', initial = 0 }) {
           <strong>{recentAction}</strong>
         </div>
       </div>
+      <div style={{ display: 'grid', gap: '8px' }}>
+        <span style={{ fontSize: '0.75rem', opacity: 0.75 }}>手动设置</span>
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+          <input
+            value={draftValue}
+            onChange={(event) => setDraftValue(event.target.value)}
+            style={{
+              minWidth: '100px',
+              padding: '10px 12px',
+              borderRadius: '10px',
+              border: '1px solid rgba(255, 255, 255, 0.12)',
+              background: 'rgba(15, 23, 42, 0.35)',
+              color: 'inherit',
+            }}
+          />
+          <button className="solid-button" onClick={commitDraftValue} type="button">应用数值</button>
+          <button className="ghost-button" onClick={revertLastChange} disabled={!lastSnapshot} type="button">撤销一步</button>
+        </div>
+      </div>
+      <div>
+        modified by human，hahaha
+
+        hello world
+      </div>
       <div style={{ display: 'grid', gap: '6px', fontSize: '0.875rem', opacity: 0.8 }}>
         <div>变化量：{formattedDelta}</div>
-        <div>试试切换步进档位，再用快捷目标观察统计卡片怎么变化。</div>
+        <div>最近 5 次均值：{averageValue}</div>
+        <div>试试切换步进档位、手动输入和撤销，观察统计卡片怎么变化。</div>
       </div>
       <div style={{ display: 'grid', gap: '6px', fontSize: '0.8rem', opacity: 0.75 }}>
         {history.map((item, index) => (
