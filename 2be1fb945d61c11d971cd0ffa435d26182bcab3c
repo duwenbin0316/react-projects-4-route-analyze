@@ -1,0 +1,23 @@
+react-router5-demo/src/components/CounterCard.jsx
+  1c55e45671330866 18-32,153-161,176-177
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.0",
+  "base_commit_sha": "2be1fb945d61c11d971cd0ffa435d26182bcab3c",
+  "prompts": {
+    "1c55e45671330866": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_278bf7fb8ffekjgylPwgarLNfA",
+        "model": "unknown"
+      },
+      "human_author": "duwenbin0316",
+      "messages": [],
+      "total_additions": 176,
+      "total_deletions": 158,
+      "accepted_lines": 153,
+      "overriden_lines": 0
+    }
+  }
+}
