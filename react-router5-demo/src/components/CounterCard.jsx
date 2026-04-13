@@ -20,6 +20,12 @@ const inputStyle = {
   background: 'rgba(15, 23, 42, 0.35)',
   color: 'inherit',
 }
+const streakStyle = {
+  padding: '8px 10px',
+  borderRadius: '12px',
+  background: 'rgba(245, 158, 11, 0.14)',
+  fontSize: '0.8rem',
+}
 
 function CounterCard({ title = '计数器示例', initial = 0 }) {
   const [count, setCount] = useState(initial)
@@ -37,6 +43,9 @@ function CounterCard({ title = '计数器示例', initial = 0 }) {
   const lastSnapshot = history[1]
   const averageValue = Math.round(history.reduce((sum, item) => sum + item.value, 0) / history.length)
   const reachedMilestone = delta !== 0 && Math.abs(delta) % 10 === 0
+  const increaseStreak = history.reduce((streak, item) => (
+    item.label.startsWith('增加') ? streak + 1 : streak
+  ), 0)
   const highlightMessage = count === bounds.max && count !== initial
     ? `已刷新最高值 ${bounds.max}`
     : count === bounds.min && count !== initial
@@ -51,8 +60,6 @@ function CounterCard({ title = '计数器示例', initial = 0 }) {
       : reachedMilestone
         ? 'rgba(99, 102, 241, 0.18)'
         : 'rgba(255, 255, 255, 0.05)'
-
-  console.log(count, initial, delta, bounds, history, draftValue, step, stepOptions, reachedMilestone, highlightMessage, highlightTone)
 
   const applyCount = (nextCount, label) => {
     setCount(nextCount)
@@ -87,6 +94,14 @@ function CounterCard({ title = '计数器示例', initial = 0 }) {
     }
 
     applyCount(lastSnapshot.value, `撤销到 ${lastSnapshot.value}`)
+  }
+
+  const resetSession = () => {
+    setCount(initial)
+    setStep(1)
+    setBounds({ min: initial, max: initial })
+    setHistory([{ label: '重新开始', value: initial }])
+    setDraftValue(`${initial}`)
   }
 
   return (
@@ -130,6 +145,7 @@ function CounterCard({ title = '计数器示例', initial = 0 }) {
       <div style={rowStyle}>
         <button className="ghost-button" onClick={() => applyCount(count - step, `减少 ${step}`)} type="button">−{step}</button>
         <button className="solid-button" onClick={() => applyCount(count + step, `增加 ${step}`)} type="button">+{step}</button>
+        <button className="ghost-button" onClick={() => applyCount(count + step * 2, `冲刺 +${step * 2}`)} type="button">冲刺 +{step * 2}</button>
         <button className="ghost-button" onClick={() => jumpTo(initial)} disabled={count === initial} type="button">回到起点</button>
       </div>
       <div style={sectionStyle}>
@@ -160,10 +176,16 @@ function CounterCard({ title = '计数器示例', initial = 0 }) {
           <input
             value={draftValue}
             onChange={(event) => setDraftValue(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter') {
+                commitDraftValue()
+              }
+            }}
             style={inputStyle}
           />
           <button className="solid-button" onClick={commitDraftValue} type="button">应用数值</button>
           <button className="ghost-button" onClick={revertLastChange} disabled={!lastSnapshot} type="button">撤销一步</button>
+          <button className="ghost-button" onClick={resetSession} type="button">重置记录</button>
         </div>
       </div>
       <div
@@ -179,6 +201,7 @@ function CounterCard({ title = '计数器示例', initial = 0 }) {
       <div style={{ display: 'grid', gap: '6px', fontSize: '0.875rem', opacity: 0.8 }}>
         <div>变化量：{formattedDelta}</div>
         <div>最近 5 次均值：{averageValue}</div>
+        <div style={streakStyle}>本轮累计上调 {increaseStreak} 次</div>
         <div>试试切换步进档位、手动输入和撤销，观察统计卡片怎么变化。</div>
       </div>
       <div style={{ display: 'grid', gap: '6px', fontSize: '0.8rem', opacity: 0.75 }}>
