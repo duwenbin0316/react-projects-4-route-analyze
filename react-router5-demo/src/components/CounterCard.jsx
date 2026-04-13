@@ -33,11 +33,26 @@ function CounterCard({ title = '计数器示例', initial = 0 }) {
       <div style={{ display: 'flex', gap: '8px' }}>
         <button className="ghost-button" onClick={() => setCount((c) => c - 1)}>−</button>
         <button className="solid-button" onClick={() => setCount((c) => c + 1)}>+</button>
-        <button className="ghost-button" onClick={() => setCount(initial)} disabled={count === initial}>回到起点</button>
+        <button className="ghost-button" onClick={() => setCount(initial)} disabled={count === initial}>回到起点132131313232</button>
+      </div>
+      <div style={{ display: 'flex', gap: '8px' }}>
+        <button className="ghost-button" onClick={() => setCount((c) => c - 1)}>−</button>
+        <button className="solid-button" onClick={() => setCount((c) => c + 1)}>+</button>
+        <button className="ghost-button" onClick={() => setCount(initial)} disabled={count === initial}>回到起点132131313232</button>
+      </div>
+      <div style={{ display: 'flex', gap: '8px' }}>
+        <button className="ghost-button" onClick={() => setCount((c) => c - 1)}>−</button>
+        <button className="solid-button" onClick={() => setCount((c) => c + 1)}>+</button>
+        <button className="ghost-button" onClick={() => setCount(initial)} disabled={count === initial}>回到起点132131313232</button>
+      </div>
+      <div style={{ display: 'flex', gap: '8px' }}>
+        <button className="ghost-button" onClick={() => setCount((c) => c - 1)}>−</button>
+        <button className="solid-button" onClick={() => setCount((c) => c + 1)}>+</button>
+        <button className="ghost-button" onClick={() => setCount(initial)} disabled={count === initial}>回到起点132131313232</button>
       </div>
       <div style={{ display: 'grid', gap: '6px', fontSize: '0.875rem', opacity: 0.8 }}>
-        <div>变化量：{delta > 0 ? `+${delta}` : delta}</div>
-        <div>点点按钮，看看状态文案和角标会不会一起变化。</div>
+        <div>变化量：{delta > 0 ? `+${delta}` : delta}12313132313</div>
+        <div>点点按钮，看看状态文案和角标会不会一起变化。123123</div>
       </div>
     </article>
   )
