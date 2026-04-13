@@ -1,0 +1,14 @@
+react-router5-demo/src/components/CounterCard.jsx
+  h_bc2ea7bc871714 3-4
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.0",
+  "base_commit_sha": "af24e59f40d76a2a5a7530b8ed824575bc7c6461",
+  "prompts": {},
+  "humans": {
+    "h_bc2ea7bc871714": {
+      "author": "duwenbin0316"
+    }
+  }
+}
