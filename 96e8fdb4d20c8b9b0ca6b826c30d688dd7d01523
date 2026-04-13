@@ -1,0 +1,23 @@
+react-router5-demo/src/components/CounterCard.jsx
+  6da9aa3f3ef20e92 111
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.2.8",
+  "base_commit_sha": "96e8fdb4d20c8b9b0ca6b826c30d688dd7d01523",
+  "prompts": {
+    "6da9aa3f3ef20e92": {
+      "agent_id": {
+        "tool": "github-copilot-tab",
+        "id": "ai_tab-1776083350557",
+        "model": "default"
+      },
+      "human_author": "duwenbin0316",
+      "messages": [],
+      "total_additions": 1,
+      "total_deletions": 1,
+      "accepted_lines": 1,
+      "overriden_lines": 0
+    }
+  }
+}
