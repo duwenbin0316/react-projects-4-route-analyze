@@ -1,7 +1,26 @@
 import { useState } from 'react'
 
+const cardStyle = { display: 'flex', flexDirection: 'column', gap: '12px' }
+const rowStyle = { display: 'flex', gap: '8px' }
+const wrapRowStyle = { ...rowStyle, flexWrap: 'wrap' }
+const sectionStyle = { display: 'grid', gap: '8px' }
+const sectionLabelStyle = { fontSize: '0.75rem', opacity: 0.75 }
+const metricCardStyle = {
+  padding: '8px 10px',
+  borderRadius: '12px',
+  background: 'rgba(255, 255, 255, 0.04)',
+}
+const metricLabelStyle = { opacity: 0.7 }
+const historyRowStyle = { display: 'flex', justifyContent: 'space-between', gap: '12px' }
+const inputStyle = {
+  minWidth: '100px',
+  padding: '10px 12px',
+  borderRadius: '10px',
+  border: '1px solid rgba(255, 255, 255, 0.12)',
+  background: 'rgba(15, 23, 42, 0.35)',
+  color: 'inherit',
+}
 
-// added by duwenbin0316
 function CounterCard({ title = '计数器示例', initial = 0 }) {
   const [count, setCount] = useState(initial)
   const [step, setStep] = useState(1)
@@ -71,7 +90,7 @@ function CounterCard({ title = '计数器示例', initial = 0 }) {
   }
 
   return (
-    <article className="stat-card" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+    <article className="stat-card" style={cardStyle}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px' }}>
         <span>{title}</span>
         <span style={{ fontSize: '0.875rem', opacity: 0.7 }}>初始值 {initial}</span>
@@ -93,9 +112,9 @@ function CounterCard({ title = '计数器示例', initial = 0 }) {
       <span style={{ fontSize: '0.875rem', color: delta === 0 ? 'inherit' : delta > 0 ? '#1d9b5f' : '#d9485f' }}>
         {statusText}
       </span>
-      <div style={{ display: 'grid', gap: '8px' }}>
-        <span style={{ fontSize: '0.75rem', opacity: 0.75 }}>步进档位</span>
-        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+      <div style={sectionStyle}>
+        <span style={sectionLabelStyle}>步进档位</span>
+        <div style={wrapRowStyle}>
           {stepOptions.map((option) => (
             <button
               key={option}
@@ -108,47 +127,40 @@ function CounterCard({ title = '计数器示例', initial = 0 }) {
           ))}
         </div>
       </div>
-      <div style={{ display: 'flex', gap: '8px' }}>
+      <div style={rowStyle}>
         <button className="ghost-button" onClick={() => applyCount(count - step, `减少 ${step}`)} type="button">−{step}</button>
         <button className="solid-button" onClick={() => applyCount(count + step, `增加 ${step}`)} type="button">+{step}</button>
         <button className="ghost-button" onClick={() => jumpTo(initial)} disabled={count === initial} type="button">回到起点</button>
       </div>
-      <div style={{ display: 'grid', gap: '8px' }}>
-        <span style={{ fontSize: '0.75rem', opacity: 0.75 }}>快捷目标</span>
-        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+      <div style={sectionStyle}>
+        <span style={sectionLabelStyle}>快捷目标</span>
+        <div style={wrapRowStyle}>
           <button className="ghost-button" onClick={() => jumpTo(0)} disabled={count === 0} type="button">归零</button>
           <button className="ghost-button" onClick={() => jumpTo(initial + 10)} disabled={count === initial + 10} type="button">冲到 +10</button>
           <button className="ghost-button" onClick={() => jumpTo(initial - 10)} disabled={count === initial - 10} type="button">回撤 10</button>
         </div>
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: '8px', fontSize: '0.8rem' }}>
-        <div style={{ padding: '8px 10px', borderRadius: '12px', background: 'rgba(255, 255, 255, 0.04)' }}>
-          <div style={{ opacity: 0.7 }}>最低</div>
+        <div style={metricCardStyle}>
+          <div style={metricLabelStyle}>最低</div>
           <strong>{bounds.min}</strong>
         </div>
-        <div style={{ padding: '8px 10px', borderRadius: '12px', background: 'rgba(255, 255, 255, 0.04)' }}>
-          <div style={{ opacity: 0.7 }}>最高</div>
+        <div style={metricCardStyle}>
+          <div style={metricLabelStyle}>最高</div>
           <strong>{bounds.max}</strong>
         </div>
-        <div style={{ padding: '8px 10px', borderRadius: '12px', background: 'rgba(255, 255, 255, 0.04)' }}>
-          <div style={{ opacity: 0.7 }}>最近动作</div>
+        <div style={metricCardStyle}>
+          <div style={metricLabelStyle}>最近动作</div>
           <strong>{recentAction}</strong>
         </div>
       </div>
-      <div style={{ display: 'grid', gap: '8px' }}>
-        <span style={{ fontSize: '0.75rem', opacity: 0.75 }}>手动设置</span>
-        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+      <div style={sectionStyle}>
+        <span style={sectionLabelStyle}>手动设置</span>
+        <div style={wrapRowStyle}>
           <input
             value={draftValue}
             onChange={(event) => setDraftValue(event.target.value)}
-            style={{
-              minWidth: '100px',
-              padding: '10px 12px',
-              borderRadius: '10px',
-              border: '1px solid rgba(255, 255, 255, 0.12)',
-              background: 'rgba(15, 23, 42, 0.35)',
-              color: 'inherit',
-            }}
+            style={inputStyle}
           />
           <button className="solid-button" onClick={commitDraftValue} type="button">应用数值</button>
           <button className="ghost-button" onClick={revertLastChange} disabled={!lastSnapshot} type="button">撤销一步</button>
@@ -171,7 +183,7 @@ function CounterCard({ title = '计数器示例', initial = 0 }) {
       </div>
       <div style={{ display: 'grid', gap: '6px', fontSize: '0.8rem', opacity: 0.75 }}>
         {history.map((item, index) => (
-          <div key={`${item.label}-${item.value}-${index}`} style={{ display: 'flex', justifyContent: 'space-between', gap: '12px' }}>
+          <div key={`${item.label}-${item.value}-${index}`} style={historyRowStyle}>
             <span>{item.label}</span>
             <span>{item.value}</span>
           </div>
