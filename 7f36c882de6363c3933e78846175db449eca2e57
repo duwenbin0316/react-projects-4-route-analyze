@@ -1,0 +1,51 @@
+react-router5-demo/src/components/CounterCard.jsx
+  1cd6cf3b478f91c9 8,16-17,21,35-53,119-135,145-146
+  713aae53d75e3776 139
+  5b7cf0f5980f8427 140-141
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.2.8",
+  "base_commit_sha": "7f36c882de6363c3933e78846175db449eca2e57",
+  "prompts": {
+    "1cd6cf3b478f91c9": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_279536398ffe1nXa1v1e7m73QD",
+        "model": "openai/gpt-5.4-fast"
+      },
+      "human_author": "duwenbin0316",
+      "messages": [],
+      "total_additions": 44,
+      "total_deletions": 1,
+      "accepted_lines": 44,
+      "overriden_lines": 0
+    },
+    "5b7cf0f5980f8427": {
+      "agent_id": {
+        "tool": "github-copilot-tab",
+        "id": "ai_tab-1776083412454",
+        "model": "default"
+      },
+      "human_author": "duwenbin0316",
+      "messages": [],
+      "total_additions": 2,
+      "total_deletions": 0,
+      "accepted_lines": 2,
+      "overriden_lines": 0
+    },
+    "713aae53d75e3776": {
+      "agent_id": {
+        "tool": "github-copilot-tab",
+        "id": "ai_tab-1776083411263",
+        "model": "default"
+      },
+      "human_author": "duwenbin0316",
+      "messages": [],
+      "total_additions": 1,
+      "total_deletions": 1,
+      "accepted_lines": 1,
+      "overriden_lines": 0
+    }
+  }
+}
